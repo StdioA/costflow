@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from dataclasses import dataclass
 from decimal import Decimal
+from collections import defaultdict
 
 
 @dataclass
@@ -37,29 +38,8 @@ class Transaction:
     def push(self, posting):
         self.postings.append(posting)
 
-    @property
-    def amount_left(self):
-        amount = Decimal(0)
-        for posting in self.postings:
-            amount -= posting.amount
-        return amount
-
-    def rebalance(self):
-        amount = Decimal(0)
-        empty_amounts = []
-        # TODO: Check currency
-        for posting in self.postings:
-            if posting.amount is None:
-                empty_amounts.append(posting)
-            else:
-                amount -= posting.amount
-        if not empty_amounts:
-            return
-        avg_amount = amount / len(empty_amounts)
-        for amount in empty_amounts:
-            amount.amount = avg_amount
-
     def build(self):
+        "Fill empty currency and amount"
         currency = None
         empty = []
         for posting in self.postings:
@@ -72,6 +52,21 @@ class Transaction:
         for posting in empty:
             posting.currency = currency
 
+        # Rebalance amount by currency
+        amounts = defaultdict(Decimal)
+        empty_amounts = defaultdict(list)
+        for posting in self.postings:
+            cur = posting.currency
+            if posting.amount is None:
+                empty_amounts[cur].append(posting)
+            else:
+                amounts[cur] -= posting.amount
+
+        for cur, postings in empty_amounts.items():
+            avg_amount = amounts[cur] / len(postings)
+            for posting in postings:
+                posting.amount = avg_amount
+
     def render(self):
         date = self.narration.date_
         if not date:
@@ -80,6 +75,5 @@ class Transaction:
         lines = [f'{date} {self.narration.type_} "{self.narration.payee}" "{self.narration.desc}"']
         for posting in self.postings:
             # TODO: account finding
-            # TODO: commodity
             lines.append("\t{}\t{:.2f} {}".format(posting.account, posting.amount, posting.currency))
         return "\n".join(lines)

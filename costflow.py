@@ -214,7 +214,6 @@ def p_transaction(t):
             postings = t[2]
         for posting in postings:
             trx.push(posting)
-        trx.rebalance()
     t[0] = trx
 
 
@@ -225,7 +224,7 @@ def p_error(t):
 # ----- main -----
 if __name__ == '__main__':
     inputs = [
-        '! @abc def -100 from + 300 CNY from2 > USD to1 + to2',
+        '! @abc def -100 USD from + 300 CNY from2 > USD to1 + CNY to2',
         '''2021-09-24 麦当劳 汉堡
             | from 24 | to -18
             | to2 -6''',
