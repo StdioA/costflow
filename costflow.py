@@ -23,7 +23,7 @@ states = (
 
 # Tokens
 tokens = [
-    "NUMBER", "STRING", "LT", "PIPE",
+    "NUMBER", "STRING", "LT", "PIPE", "ADD",
     "NAME", "AMOUNT", "DATE",
     "AT", "EXCLAMATION", "ASTERISK"
 ] + list(reserved.values())
@@ -94,6 +94,7 @@ def t_error(t):
 
 # Exclusive tokens for transaction state
 t_transaction_LT    = r'>'
+t_transaction_ADD = r"\+"
 t_transaction_NAME = t_STRING            # TODO: 按照 beancount 的 lexer 处理
 t_transaction_AMOUNT = t_NUMBER
 t_transaction_PIPE = t_PIPE
@@ -111,6 +112,7 @@ precedence = (
 
 def p_statement_narration(t):
     "statement : transaction"
+    t[1].build()
     t[0] = t[1]
 
 # Expressions
@@ -142,11 +144,11 @@ def p_expression_narration(t):
         payee = t[1]
         if not isinstance(payee, Payee):
             payee = Payee(payee)
-        t[0] = Narration(payee=payee, desc=t[2], type_="*", date=None)
+        t[0] = Narration(payee=payee, desc=t[2])
     elif isinstance(t[1], Payee):
-        t[0] = Narration(payee=t[1], desc="", type_="*", date=None)
+        t[0] = Narration(payee=t[1], desc="")
     else:
-        t[0] = Narration(payee=Payee(""), desc=t[1], type_="*", date=None)
+        t[0] = Narration(payee=Payee(""), desc=t[1])
 
 
 def p_posting(t):
@@ -161,20 +163,33 @@ def p_posting(t):
 
 def p_rev_posting(t):
     """rev_posting : AMOUNT NAME NAME
+                   | NAME NAME
                    | AMOUNT NAME
                    | NAME
     """
     if len(t) == 2:
-        t[0] = Posting(t[1], None)
+        t[0] = Posting(account=t[1], amount=None)
     elif len(t) == 3:
-        t[0] = Posting(t[2], t[1])
+        if isinstance(t[1], Decimal):
+            t[0] = Posting(account=t[2], amount=t[1])
+        else:
+            t[0] = Posting(account=t[2], currency=t[1])
     else:
         t[0] = Posting(t[3], t[1], t[2])    # amount currency account
 
+def p_rev_postings(t):
+    """rev_postings : rev_posting
+                    | rev_postings ADD rev_posting
+    """
+    if len(t) == 2:
+        t[0] = [t[1]]
+    else:
+        t[1].append(t[3])
+        t[0] = t[1]
 
 def p_transaction(t):
-    """transaction : narration rev_posting
-                   | transaction LT rev_posting
+    """transaction : narration rev_postings
+                   | transaction LT rev_postings
                    | narration PIPE posting
                    | transaction PIPE posting
     """
@@ -183,15 +198,17 @@ def p_transaction(t):
         trx = Transaction(t[1])
 
     if t[2] == '|':
+        # deal with posting pipe
         trx.push(t[3])
     else:
+        # deal with rev_posting group
         if t[2] == '>':
-            posting = t[3]
+            postings = t[3]
         else:
-            posting = t[2]
-        if posting.amount is None:
-            posting.amount = trx.amount_left
-        trx.push(posting)
+            postings = t[2]
+        for posting in postings:
+            trx.push(posting)
+        trx.rebalance()
     t[0] = trx
 
 
@@ -199,12 +216,11 @@ def p_error(t):
     print("Syntax error at '%s'" % t.value)
 
 
-
 # ----- main -----
 import ply.lex as lex
 import ply.yacc as yacc
 
-s = '! @abc def -24.23 BTC from > 2 USD to'
+s = '! @abc def -100 from + 300 CNY from2 > USD to1 + to2'
 parser = yacc.yacc()
 print("input:", s)
 t = parser.parse(s, lexer=lex.lex())

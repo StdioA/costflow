@@ -21,11 +21,14 @@ class Narration:
     date: date = datetime.today().date()
 
 
+DEFAULT_CURRENCY = "CNY"
+
+
 @dataclass
 class Posting:
     account: str
-    amount: Decimal
-    currency: str = "CNY"
+    amount: Decimal = None
+    currency: str = None
 
 
 class Transaction:
@@ -43,6 +46,34 @@ class Transaction:
             amount -= posting.amount
         return amount
     
+    def rebalance(self):
+        amount = Decimal(0)
+        empty_amounts = []
+        # TODO: Check currency
+        for posting in self.postings:
+            if posting.amount is None:
+                empty_amounts.append(posting)
+            else:
+                amount -= posting.amount
+        if not empty_amounts:
+            return
+        avg_amount = amount / len(empty_amounts)
+        for amount in empty_amounts:
+            amount.amount = avg_amount
+        
+    def build(self):
+        currency = None
+        empty = []
+        for posting in self.postings:
+            if posting.currency is None:
+                empty.append(posting)
+            elif currency is None:
+                currency = posting.currency
+        if currency is None:
+            currency = DEFAULT_CURRENCY
+        for posting in empty:
+            posting.currency = currency
+
     def render(self):
         date = self.narration.date
         if not date:

@@ -28,16 +28,20 @@ Rule 9     narration -> DATE narration
 Rule 10    posting -> NAME NAME AMOUNT
 Rule 11    posting -> NAME AMOUNT
 Rule 12    rev_posting -> AMOUNT NAME NAME
-Rule 13    rev_posting -> AMOUNT NAME
-Rule 14    rev_posting -> NAME
-Rule 15    transaction -> narration rev_posting
-Rule 16    transaction -> transaction LT rev_posting
-Rule 17    transaction -> narration PIPE posting
-Rule 18    transaction -> transaction PIPE posting
+Rule 13    rev_posting -> NAME NAME
+Rule 14    rev_posting -> AMOUNT NAME
+Rule 15    rev_posting -> NAME
+Rule 16    rev_postings -> rev_posting
+Rule 17    rev_postings -> rev_postings ADD rev_posting
+Rule 18    transaction -> narration rev_postings
+Rule 19    transaction -> transaction LT rev_postings
+Rule 20    transaction -> narration PIPE posting
+Rule 21    transaction -> transaction PIPE posting
 
 Terminals, with rules where they appear
 
-AMOUNT               : 10 11 12 13
+ADD                  : 17
+AMOUNT               : 10 11 12 14
 ASTERISK             : 7
 AT                   : 2
 BALANCE              : 
@@ -46,26 +50,27 @@ COMMODITY            :
 DATE                 : 9
 EVENT                : 
 EXCLAMATION          : 8
-LT                   : 16
-NAME                 : 10 10 11 12 12 13 14
+LT                   : 19
+NAME                 : 10 10 11 12 12 13 13 14 15
 NOTE                 : 
 NUMBER               : 
 OPEN                 : 
 OPTION               : 
 PAD                  : 
-PIPE                 : 17 18
+PIPE                 : 20 21
 PRICE                : 
 STRING               : 2 4 4 5 6
 error                : 
 
 Nonterminals, with rules where they appear
 
-narration            : 7 8 9 15 17
+narration            : 7 8 9 18 20
 payee                : 3 5
-posting              : 17 18
-rev_posting          : 15 16
+posting              : 20 21
+rev_posting          : 16 17
+rev_postings         : 17 18 19
 statement            : 0
-transaction          : 1 16 18
+transaction          : 1 19 21
 
 Parsing method: LALR
 
@@ -73,10 +78,10 @@ state 0
 
     (0) S' -> . statement
     (1) statement -> . transaction
-    (15) transaction -> . narration rev_posting
-    (16) transaction -> . transaction LT rev_posting
-    (17) transaction -> . narration PIPE posting
-    (18) transaction -> . transaction PIPE posting
+    (18) transaction -> . narration rev_postings
+    (19) transaction -> . transaction LT rev_postings
+    (20) transaction -> . narration PIPE posting
+    (21) transaction -> . transaction PIPE posting
     (3) narration -> . payee
     (4) narration -> . STRING STRING
     (5) narration -> . payee STRING
@@ -106,8 +111,8 @@ state 1
 state 2
 
     (1) statement -> transaction .
-    (16) transaction -> transaction . LT rev_posting
-    (18) transaction -> transaction . PIPE posting
+    (19) transaction -> transaction . LT rev_postings
+    (21) transaction -> transaction . PIPE posting
 
     $end            reduce using rule 1 (statement -> transaction .)
     LT              shift and go to state 10
@@ -116,17 +121,21 @@ state 2
 
 state 3
 
-    (15) transaction -> narration . rev_posting
-    (17) transaction -> narration . PIPE posting
+    (18) transaction -> narration . rev_postings
+    (20) transaction -> narration . PIPE posting
+    (16) rev_postings -> . rev_posting
+    (17) rev_postings -> . rev_postings ADD rev_posting
     (12) rev_posting -> . AMOUNT NAME NAME
-    (13) rev_posting -> . AMOUNT NAME
-    (14) rev_posting -> . NAME
+    (13) rev_posting -> . NAME NAME
+    (14) rev_posting -> . AMOUNT NAME
+    (15) rev_posting -> . NAME
 
     PIPE            shift and go to state 13
-    AMOUNT          shift and go to state 14
-    NAME            shift and go to state 15
+    AMOUNT          shift and go to state 15
+    NAME            shift and go to state 16
 
-    rev_posting                    shift and go to state 12
+    rev_postings                   shift and go to state 12
+    rev_posting                    shift and go to state 14
 
 state 4
 
@@ -136,7 +145,7 @@ state 4
     PIPE            reduce using rule 3 (narration -> payee .)
     AMOUNT          reduce using rule 3 (narration -> payee .)
     NAME            reduce using rule 3 (narration -> payee .)
-    STRING          shift and go to state 16
+    STRING          shift and go to state 17
 
 
 state 5
@@ -144,7 +153,7 @@ state 5
     (4) narration -> STRING . STRING
     (6) narration -> STRING .
 
-    STRING          shift and go to state 17
+    STRING          shift and go to state 18
     PIPE            reduce using rule 6 (narration -> STRING .)
     AMOUNT          reduce using rule 6 (narration -> STRING .)
     NAME            reduce using rule 6 (narration -> STRING .)
@@ -168,7 +177,7 @@ state 6
     DATE            shift and go to state 8
     AT              shift and go to state 9
 
-    narration                      shift and go to state 18
+    narration                      shift and go to state 19
     payee                          shift and go to state 4
 
 state 7
@@ -189,7 +198,7 @@ state 7
     DATE            shift and go to state 8
     AT              shift and go to state 9
 
-    narration                      shift and go to state 19
+    narration                      shift and go to state 20
     payee                          shift and go to state 4
 
 state 8
@@ -210,75 +219,94 @@ state 8
     DATE            shift and go to state 8
     AT              shift and go to state 9
 
-    narration                      shift and go to state 20
+    narration                      shift and go to state 21
     payee                          shift and go to state 4
 
 state 9
 
     (2) payee -> AT . STRING
 
-    STRING          shift and go to state 21
+    STRING          shift and go to state 22
 
 
 state 10
 
-    (16) transaction -> transaction LT . rev_posting
+    (19) transaction -> transaction LT . rev_postings
+    (16) rev_postings -> . rev_posting
+    (17) rev_postings -> . rev_postings ADD rev_posting
     (12) rev_posting -> . AMOUNT NAME NAME
-    (13) rev_posting -> . AMOUNT NAME
-    (14) rev_posting -> . NAME
+    (13) rev_posting -> . NAME NAME
+    (14) rev_posting -> . AMOUNT NAME
+    (15) rev_posting -> . NAME
 
-    AMOUNT          shift and go to state 14
-    NAME            shift and go to state 15
+    AMOUNT          shift and go to state 15
+    NAME            shift and go to state 16
 
-    rev_posting                    shift and go to state 22
+    rev_postings                   shift and go to state 23
+    rev_posting                    shift and go to state 14
 
 state 11
 
-    (18) transaction -> transaction PIPE . posting
+    (21) transaction -> transaction PIPE . posting
     (10) posting -> . NAME NAME AMOUNT
     (11) posting -> . NAME AMOUNT
 
-    NAME            shift and go to state 24
+    NAME            shift and go to state 25
 
-    posting                        shift and go to state 23
+    posting                        shift and go to state 24
 
 state 12
 
-    (15) transaction -> narration rev_posting .
+    (18) transaction -> narration rev_postings .
+    (17) rev_postings -> rev_postings . ADD rev_posting
 
-    LT              reduce using rule 15 (transaction -> narration rev_posting .)
-    PIPE            reduce using rule 15 (transaction -> narration rev_posting .)
-    $end            reduce using rule 15 (transaction -> narration rev_posting .)
+    LT              reduce using rule 18 (transaction -> narration rev_postings .)
+    PIPE            reduce using rule 18 (transaction -> narration rev_postings .)
+    $end            reduce using rule 18 (transaction -> narration rev_postings .)
+    ADD             shift and go to state 26
 
 
 state 13
 
-    (17) transaction -> narration PIPE . posting
+    (20) transaction -> narration PIPE . posting
     (10) posting -> . NAME NAME AMOUNT
     (11) posting -> . NAME AMOUNT
 
-    NAME            shift and go to state 24
+    NAME            shift and go to state 25
 
-    posting                        shift and go to state 25
+    posting                        shift and go to state 27
 
 state 14
 
-    (12) rev_posting -> AMOUNT . NAME NAME
-    (13) rev_posting -> AMOUNT . NAME
+    (16) rev_postings -> rev_posting .
 
-    NAME            shift and go to state 26
+    ADD             reduce using rule 16 (rev_postings -> rev_posting .)
+    LT              reduce using rule 16 (rev_postings -> rev_posting .)
+    PIPE            reduce using rule 16 (rev_postings -> rev_posting .)
+    $end            reduce using rule 16 (rev_postings -> rev_posting .)
 
 
 state 15
 
-    (14) rev_posting -> NAME .
+    (12) rev_posting -> AMOUNT . NAME NAME
+    (14) rev_posting -> AMOUNT . NAME
 
-    LT              reduce using rule 14 (rev_posting -> NAME .)
-    PIPE            reduce using rule 14 (rev_posting -> NAME .)
-    $end            reduce using rule 14 (rev_posting -> NAME .)
+    NAME            shift and go to state 28
 
 
 state 16
+
+    (13) rev_posting -> NAME . NAME
+    (15) rev_posting -> NAME .
+
+    NAME            shift and go to state 29
+    ADD             reduce using rule 15 (rev_posting -> NAME .)
+    LT              reduce using rule 15 (rev_posting -> NAME .)
+    PIPE            reduce using rule 15 (rev_posting -> NAME .)
+    $end            reduce using rule 15 (rev_posting -> NAME .)
+
+
+state 17
 
     (5) narration -> payee STRING .
 
@@ -287,7 +315,7 @@ state 16
     NAME            reduce using rule 5 (narration -> payee STRING .)
 
 
-state 17
+state 18
 
     (4) narration -> STRING STRING .
 
@@ -296,7 +324,7 @@ state 17
     NAME            reduce using rule 4 (narration -> STRING STRING .)
 
 
-state 18
+state 19
 
     (7) narration -> ASTERISK narration .
 
@@ -305,7 +333,7 @@ state 18
     NAME            reduce using rule 7 (narration -> ASTERISK narration .)
 
 
-state 19
+state 20
 
     (8) narration -> EXCLAMATION narration .
 
@@ -314,7 +342,7 @@ state 19
     NAME            reduce using rule 8 (narration -> EXCLAMATION narration .)
 
 
-state 20
+state 21
 
     (9) narration -> DATE narration .
 
@@ -323,7 +351,7 @@ state 20
     NAME            reduce using rule 9 (narration -> DATE narration .)
 
 
-state 21
+state 22
 
     (2) payee -> AT STRING .
 
@@ -333,61 +361,87 @@ state 21
     NAME            reduce using rule 2 (payee -> AT STRING .)
 
 
-state 22
-
-    (16) transaction -> transaction LT rev_posting .
-
-    LT              reduce using rule 16 (transaction -> transaction LT rev_posting .)
-    PIPE            reduce using rule 16 (transaction -> transaction LT rev_posting .)
-    $end            reduce using rule 16 (transaction -> transaction LT rev_posting .)
-
-
 state 23
 
-    (18) transaction -> transaction PIPE posting .
+    (19) transaction -> transaction LT rev_postings .
+    (17) rev_postings -> rev_postings . ADD rev_posting
 
-    LT              reduce using rule 18 (transaction -> transaction PIPE posting .)
-    PIPE            reduce using rule 18 (transaction -> transaction PIPE posting .)
-    $end            reduce using rule 18 (transaction -> transaction PIPE posting .)
+    LT              reduce using rule 19 (transaction -> transaction LT rev_postings .)
+    PIPE            reduce using rule 19 (transaction -> transaction LT rev_postings .)
+    $end            reduce using rule 19 (transaction -> transaction LT rev_postings .)
+    ADD             shift and go to state 26
 
 
 state 24
 
-    (10) posting -> NAME . NAME AMOUNT
-    (11) posting -> NAME . AMOUNT
+    (21) transaction -> transaction PIPE posting .
 
-    NAME            shift and go to state 27
-    AMOUNT          shift and go to state 28
+    LT              reduce using rule 21 (transaction -> transaction PIPE posting .)
+    PIPE            reduce using rule 21 (transaction -> transaction PIPE posting .)
+    $end            reduce using rule 21 (transaction -> transaction PIPE posting .)
 
 
 state 25
 
-    (17) transaction -> narration PIPE posting .
+    (10) posting -> NAME . NAME AMOUNT
+    (11) posting -> NAME . AMOUNT
 
-    LT              reduce using rule 17 (transaction -> narration PIPE posting .)
-    PIPE            reduce using rule 17 (transaction -> narration PIPE posting .)
-    $end            reduce using rule 17 (transaction -> narration PIPE posting .)
+    NAME            shift and go to state 30
+    AMOUNT          shift and go to state 31
 
 
 state 26
 
-    (12) rev_posting -> AMOUNT NAME . NAME
-    (13) rev_posting -> AMOUNT NAME .
+    (17) rev_postings -> rev_postings ADD . rev_posting
+    (12) rev_posting -> . AMOUNT NAME NAME
+    (13) rev_posting -> . NAME NAME
+    (14) rev_posting -> . AMOUNT NAME
+    (15) rev_posting -> . NAME
 
-    NAME            shift and go to state 29
-    LT              reduce using rule 13 (rev_posting -> AMOUNT NAME .)
-    PIPE            reduce using rule 13 (rev_posting -> AMOUNT NAME .)
-    $end            reduce using rule 13 (rev_posting -> AMOUNT NAME .)
+    AMOUNT          shift and go to state 15
+    NAME            shift and go to state 16
 
+    rev_posting                    shift and go to state 32
 
 state 27
 
-    (10) posting -> NAME NAME . AMOUNT
+    (20) transaction -> narration PIPE posting .
 
-    AMOUNT          shift and go to state 30
+    LT              reduce using rule 20 (transaction -> narration PIPE posting .)
+    PIPE            reduce using rule 20 (transaction -> narration PIPE posting .)
+    $end            reduce using rule 20 (transaction -> narration PIPE posting .)
 
 
 state 28
+
+    (12) rev_posting -> AMOUNT NAME . NAME
+    (14) rev_posting -> AMOUNT NAME .
+
+    NAME            shift and go to state 33
+    ADD             reduce using rule 14 (rev_posting -> AMOUNT NAME .)
+    LT              reduce using rule 14 (rev_posting -> AMOUNT NAME .)
+    PIPE            reduce using rule 14 (rev_posting -> AMOUNT NAME .)
+    $end            reduce using rule 14 (rev_posting -> AMOUNT NAME .)
+
+
+state 29
+
+    (13) rev_posting -> NAME NAME .
+
+    ADD             reduce using rule 13 (rev_posting -> NAME NAME .)
+    LT              reduce using rule 13 (rev_posting -> NAME NAME .)
+    PIPE            reduce using rule 13 (rev_posting -> NAME NAME .)
+    $end            reduce using rule 13 (rev_posting -> NAME NAME .)
+
+
+state 30
+
+    (10) posting -> NAME NAME . AMOUNT
+
+    AMOUNT          shift and go to state 34
+
+
+state 31
 
     (11) posting -> NAME AMOUNT .
 
@@ -396,16 +450,27 @@ state 28
     $end            reduce using rule 11 (posting -> NAME AMOUNT .)
 
 
-state 29
+state 32
+
+    (17) rev_postings -> rev_postings ADD rev_posting .
+
+    ADD             reduce using rule 17 (rev_postings -> rev_postings ADD rev_posting .)
+    LT              reduce using rule 17 (rev_postings -> rev_postings ADD rev_posting .)
+    PIPE            reduce using rule 17 (rev_postings -> rev_postings ADD rev_posting .)
+    $end            reduce using rule 17 (rev_postings -> rev_postings ADD rev_posting .)
+
+
+state 33
 
     (12) rev_posting -> AMOUNT NAME NAME .
 
+    ADD             reduce using rule 12 (rev_posting -> AMOUNT NAME NAME .)
     LT              reduce using rule 12 (rev_posting -> AMOUNT NAME NAME .)
     PIPE            reduce using rule 12 (rev_posting -> AMOUNT NAME NAME .)
     $end            reduce using rule 12 (rev_posting -> AMOUNT NAME NAME .)
 
 
-state 30
+state 34
 
     (10) posting -> NAME NAME AMOUNT .
 
