@@ -2,6 +2,13 @@ from datetime import date, datetime
 from dataclasses import dataclass
 from decimal import Decimal
 from collections import defaultdict
+from abc import ABCMeta, abstractmethod
+
+
+class Entry(metaclass=ABCMeta):
+    @abstractmethod
+    def render(self):
+        pass
 
 
 @dataclass
@@ -30,7 +37,7 @@ class Posting:
     currency: str = None
 
 
-class Transaction:
+class Transaction(Entry):
     def __init__(self, narration):
         self.narration = narration
         self.postings = []

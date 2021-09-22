@@ -26,15 +26,11 @@ states = (
 
 # Tokens
 tokens = [
-    "NUMBER", "STRING", "LT", "PIPE", "ADD",
+    "NUMBER", "STRING",
     "NAME", "AMOUNT", "DATE",
-    "AT", "EXCLAMATION", "ASTERISK"
 ] + list(reserved.values())
 
-
-t_AT = "@"
-t_EXCLAMATION = r"\!"
-t_ASTERISK = r"\*"
+literals = "@!*|+>"
 
 
 def t_DATE(t):
@@ -45,6 +41,7 @@ def t_DATE(t):
 
 def t_PIPE(t):
     r'\|'
+    t.type = '|'
     t.lexer.begin("transaction")
     return t
 
@@ -96,11 +93,8 @@ def t_error(t):
 
 
 # Exclusive tokens for transaction state
-t_transaction_LT = r'>'
-t_transaction_ADD = r"\+"
-t_transaction_NAME = t_STRING            # TODO: 按照 beancount 的 lexer 处理
+t_transaction_NAME = t_STRING
 t_transaction_AMOUNT = t_NUMBER
-t_transaction_PIPE = t_PIPE
 
 t_transaction_newline = t_newline
 t_transaction_ignore = t_ignore
@@ -109,7 +103,7 @@ t_transaction_error = t_error
 
 # Statements
 precedence = (
-    ('right', 'AT'),
+    ('right', '@'),
 )
 
 
@@ -121,7 +115,7 @@ def p_statement_narration(t):
 
 # Expressions
 def p_expression_payee(t):
-    "payee : AT STRING"
+    "payee : '@' STRING"
     t[0] = Payee(t[2])
 
 
@@ -130,8 +124,8 @@ def p_expression_narration(t):
                  | STRING STRING
                  | payee STRING
                  | STRING
-                 | ASTERISK narration
-                 | EXCLAMATION narration
+                 | '*' narration
+                 | '!' narration
                  | DATE narration"""
 
     if isinstance(t[1], date):
@@ -184,7 +178,7 @@ def p_rev_posting(t):
 
 def p_rev_postings(t):
     """rev_postings : rev_posting
-                    | rev_postings ADD rev_posting
+                    | rev_postings '+' rev_posting
     """
     if len(t) == 2:
         t[0] = [t[1]]
@@ -195,9 +189,9 @@ def p_rev_postings(t):
 
 def p_transaction(t):
     """transaction : narration rev_postings
-                   | transaction LT rev_postings
-                   | narration PIPE posting
-                   | transaction PIPE posting
+                   | transaction '>' rev_postings
+                   | narration '|' posting
+                   | transaction '|' posting
     """
     trx = t[1]
     if not isinstance(trx, Transaction):
