@@ -49,7 +49,7 @@ def t_STRING_LETERAL(t):
     return t
 
 def t_NUMBER(t):
-    r'([0-9]+|[0-9][0-9,]+[0-9])(\.[0-9]*)?'
+    r'-?([0-9]+|[0-9][0-9,]+[0-9])(\.[0-9]*)?'
     try:
         t.value = Decimal(t.value)
     except ValueError:
@@ -159,7 +159,7 @@ def p_error(t):
 import ply.yacc as yacc
 parser = yacc.yacc()
 
-s = '@abc def 24 from > to'
+s = '@abc def -24.233 from > to'
 # lexer.input(s)
 # while True:
 #     tok = lexer.token()
