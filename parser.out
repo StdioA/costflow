@@ -1,0 +1,334 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    BALANCE
+    CLOSE
+    COMMODITY
+    EVENT
+    NOTE
+    NUMBER
+    OPEN
+    OPTION
+    PAD
+    PRICE
+
+Grammar
+
+Rule 0     S' -> statement
+Rule 1     statement -> transaction
+Rule 2     payee -> AT STRING
+Rule 3     narration -> payee
+Rule 4     narration -> STRING STRING
+Rule 5     narration -> payee STRING
+Rule 6     narration -> STRING
+Rule 7     narration -> ASTERISK narration
+Rule 8     narration -> EXCLAMATION narration
+Rule 9     narration -> DATE narration
+Rule 10    transaction -> narration AMOUNT ACCOUNT
+Rule 11    transaction -> transaction LT ACCOUNT
+Rule 12    transaction -> narration PIPE ACCOUNT AMOUNT
+Rule 13    transaction -> transaction PIPE ACCOUNT AMOUNT
+
+Terminals, with rules where they appear
+
+ACCOUNT              : 10 11 12 13
+AMOUNT               : 10 12 13
+ASTERISK             : 7
+AT                   : 2
+BALANCE              : 
+CLOSE                : 
+COMMODITY            : 
+DATE                 : 9
+EVENT                : 
+EXCLAMATION          : 8
+LT                   : 11
+NOTE                 : 
+NUMBER               : 
+OPEN                 : 
+OPTION               : 
+PAD                  : 
+PIPE                 : 12 13
+PRICE                : 
+STRING               : 2 4 4 5 6
+error                : 
+
+Nonterminals, with rules where they appear
+
+narration            : 7 8 9 10 12
+payee                : 3 5
+statement            : 0
+transaction          : 1 11 13
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . statement
+    (1) statement -> . transaction
+    (10) transaction -> . narration AMOUNT ACCOUNT
+    (11) transaction -> . transaction LT ACCOUNT
+    (12) transaction -> . narration PIPE ACCOUNT AMOUNT
+    (13) transaction -> . transaction PIPE ACCOUNT AMOUNT
+    (3) narration -> . payee
+    (4) narration -> . STRING STRING
+    (5) narration -> . payee STRING
+    (6) narration -> . STRING
+    (7) narration -> . ASTERISK narration
+    (8) narration -> . EXCLAMATION narration
+    (9) narration -> . DATE narration
+    (2) payee -> . AT STRING
+
+    STRING          shift and go to state 5
+    ASTERISK        shift and go to state 6
+    EXCLAMATION     shift and go to state 7
+    DATE            shift and go to state 8
+    AT              shift and go to state 9
+
+    statement                      shift and go to state 1
+    transaction                    shift and go to state 2
+    narration                      shift and go to state 3
+    payee                          shift and go to state 4
+
+state 1
+
+    (0) S' -> statement .
+
+
+
+state 2
+
+    (1) statement -> transaction .
+    (11) transaction -> transaction . LT ACCOUNT
+    (13) transaction -> transaction . PIPE ACCOUNT AMOUNT
+
+    $end            reduce using rule 1 (statement -> transaction .)
+    LT              shift and go to state 10
+    PIPE            shift and go to state 11
+
+
+state 3
+
+    (10) transaction -> narration . AMOUNT ACCOUNT
+    (12) transaction -> narration . PIPE ACCOUNT AMOUNT
+
+    AMOUNT          shift and go to state 12
+    PIPE            shift and go to state 13
+
+
+state 4
+
+    (3) narration -> payee .
+    (5) narration -> payee . STRING
+
+    AMOUNT          reduce using rule 3 (narration -> payee .)
+    PIPE            reduce using rule 3 (narration -> payee .)
+    STRING          shift and go to state 14
+
+
+state 5
+
+    (4) narration -> STRING . STRING
+    (6) narration -> STRING .
+
+    STRING          shift and go to state 15
+    AMOUNT          reduce using rule 6 (narration -> STRING .)
+    PIPE            reduce using rule 6 (narration -> STRING .)
+
+
+state 6
+
+    (7) narration -> ASTERISK . narration
+    (3) narration -> . payee
+    (4) narration -> . STRING STRING
+    (5) narration -> . payee STRING
+    (6) narration -> . STRING
+    (7) narration -> . ASTERISK narration
+    (8) narration -> . EXCLAMATION narration
+    (9) narration -> . DATE narration
+    (2) payee -> . AT STRING
+
+    STRING          shift and go to state 5
+    ASTERISK        shift and go to state 6
+    EXCLAMATION     shift and go to state 7
+    DATE            shift and go to state 8
+    AT              shift and go to state 9
+
+    narration                      shift and go to state 16
+    payee                          shift and go to state 4
+
+state 7
+
+    (8) narration -> EXCLAMATION . narration
+    (3) narration -> . payee
+    (4) narration -> . STRING STRING
+    (5) narration -> . payee STRING
+    (6) narration -> . STRING
+    (7) narration -> . ASTERISK narration
+    (8) narration -> . EXCLAMATION narration
+    (9) narration -> . DATE narration
+    (2) payee -> . AT STRING
+
+    STRING          shift and go to state 5
+    ASTERISK        shift and go to state 6
+    EXCLAMATION     shift and go to state 7
+    DATE            shift and go to state 8
+    AT              shift and go to state 9
+
+    narration                      shift and go to state 17
+    payee                          shift and go to state 4
+
+state 8
+
+    (9) narration -> DATE . narration
+    (3) narration -> . payee
+    (4) narration -> . STRING STRING
+    (5) narration -> . payee STRING
+    (6) narration -> . STRING
+    (7) narration -> . ASTERISK narration
+    (8) narration -> . EXCLAMATION narration
+    (9) narration -> . DATE narration
+    (2) payee -> . AT STRING
+
+    STRING          shift and go to state 5
+    ASTERISK        shift and go to state 6
+    EXCLAMATION     shift and go to state 7
+    DATE            shift and go to state 8
+    AT              shift and go to state 9
+
+    narration                      shift and go to state 18
+    payee                          shift and go to state 4
+
+state 9
+
+    (2) payee -> AT . STRING
+
+    STRING          shift and go to state 19
+
+
+state 10
+
+    (11) transaction -> transaction LT . ACCOUNT
+
+    ACCOUNT         shift and go to state 20
+
+
+state 11
+
+    (13) transaction -> transaction PIPE . ACCOUNT AMOUNT
+
+    ACCOUNT         shift and go to state 21
+
+
+state 12
+
+    (10) transaction -> narration AMOUNT . ACCOUNT
+
+    ACCOUNT         shift and go to state 22
+
+
+state 13
+
+    (12) transaction -> narration PIPE . ACCOUNT AMOUNT
+
+    ACCOUNT         shift and go to state 23
+
+
+state 14
+
+    (5) narration -> payee STRING .
+
+    AMOUNT          reduce using rule 5 (narration -> payee STRING .)
+    PIPE            reduce using rule 5 (narration -> payee STRING .)
+
+
+state 15
+
+    (4) narration -> STRING STRING .
+
+    AMOUNT          reduce using rule 4 (narration -> STRING STRING .)
+    PIPE            reduce using rule 4 (narration -> STRING STRING .)
+
+
+state 16
+
+    (7) narration -> ASTERISK narration .
+
+    AMOUNT          reduce using rule 7 (narration -> ASTERISK narration .)
+    PIPE            reduce using rule 7 (narration -> ASTERISK narration .)
+
+
+state 17
+
+    (8) narration -> EXCLAMATION narration .
+
+    AMOUNT          reduce using rule 8 (narration -> EXCLAMATION narration .)
+    PIPE            reduce using rule 8 (narration -> EXCLAMATION narration .)
+
+
+state 18
+
+    (9) narration -> DATE narration .
+
+    AMOUNT          reduce using rule 9 (narration -> DATE narration .)
+    PIPE            reduce using rule 9 (narration -> DATE narration .)
+
+
+state 19
+
+    (2) payee -> AT STRING .
+
+    STRING          reduce using rule 2 (payee -> AT STRING .)
+    AMOUNT          reduce using rule 2 (payee -> AT STRING .)
+    PIPE            reduce using rule 2 (payee -> AT STRING .)
+
+
+state 20
+
+    (11) transaction -> transaction LT ACCOUNT .
+
+    LT              reduce using rule 11 (transaction -> transaction LT ACCOUNT .)
+    PIPE            reduce using rule 11 (transaction -> transaction LT ACCOUNT .)
+    $end            reduce using rule 11 (transaction -> transaction LT ACCOUNT .)
+
+
+state 21
+
+    (13) transaction -> transaction PIPE ACCOUNT . AMOUNT
+
+    AMOUNT          shift and go to state 24
+
+
+state 22
+
+    (10) transaction -> narration AMOUNT ACCOUNT .
+
+    LT              reduce using rule 10 (transaction -> narration AMOUNT ACCOUNT .)
+    PIPE            reduce using rule 10 (transaction -> narration AMOUNT ACCOUNT .)
+    $end            reduce using rule 10 (transaction -> narration AMOUNT ACCOUNT .)
+
+
+state 23
+
+    (12) transaction -> narration PIPE ACCOUNT . AMOUNT
+
+    AMOUNT          shift and go to state 25
+
+
+state 24
+
+    (13) transaction -> transaction PIPE ACCOUNT AMOUNT .
+
+    LT              reduce using rule 13 (transaction -> transaction PIPE ACCOUNT AMOUNT .)
+    PIPE            reduce using rule 13 (transaction -> transaction PIPE ACCOUNT AMOUNT .)
+    $end            reduce using rule 13 (transaction -> transaction PIPE ACCOUNT AMOUNT .)
+
+
+state 25
+
+    (12) transaction -> narration PIPE ACCOUNT AMOUNT .
+
+    LT              reduce using rule 12 (transaction -> narration PIPE ACCOUNT AMOUNT .)
+    PIPE            reduce using rule 12 (transaction -> narration PIPE ACCOUNT AMOUNT .)
+    $end            reduce using rule 12 (transaction -> narration PIPE ACCOUNT AMOUNT .)
+
