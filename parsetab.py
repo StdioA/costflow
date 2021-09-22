@@ -6,9 +6,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'rightATACCOUNT AMOUNT ASTERISK AT BALANCE CLOSE COMMODITY DATE EVENT EXCLAMATION LT NOTE NUMBER OPEN OPTION PAD PIPE PRICE STRINGstatement : transactionpayee : AT STRINGnarration : payee\n                 | STRING STRING\n                 | payee STRING\n                 | STRING\n                 | ASTERISK narration\n                 | EXCLAMATION narration\n                 | DATE narrationtransaction : narration AMOUNT ACCOUNT\n                   | transaction LT ACCOUNT\n                   | narration PIPE ACCOUNT AMOUNT\n                   | transaction PIPE ACCOUNT AMOUNT\n    '
+_lr_signature = 'rightATAMOUNT ASTERISK AT BALANCE CLOSE COMMODITY DATE EVENT EXCLAMATION LT NAME NOTE NUMBER OPEN OPTION PAD PIPE PRICE STRINGstatement : transactionpayee : AT STRINGnarration : payee\n                 | STRING STRING\n                 | payee STRING\n                 | STRING\n                 | ASTERISK narration\n                 | EXCLAMATION narration\n                 | DATE narrationposting : NAME NAME AMOUNT\n               | NAME AMOUNT\n    rev_posting : AMOUNT NAME NAME\n                   | AMOUNT NAME\n                   | NAME\n    transaction : narration rev_posting\n                   | transaction LT rev_posting\n                   | narration PIPE posting\n                   | transaction PIPE posting\n    '
     
-_lr_action_items = {'STRING':([0,4,5,6,7,8,9,19,],[5,14,15,5,5,5,19,-2,]),'ASTERISK':([0,6,7,8,],[6,6,6,6,]),'EXCLAMATION':([0,6,7,8,],[7,7,7,7,]),'DATE':([0,6,7,8,],[8,8,8,8,]),'AT':([0,6,7,8,],[9,9,9,9,]),'$end':([1,2,20,22,24,25,],[0,-1,-11,-10,-13,-12,]),'LT':([2,20,22,24,25,],[10,-11,-10,-13,-12,]),'PIPE':([2,3,4,5,14,15,16,17,18,19,20,22,24,25,],[11,13,-3,-6,-5,-4,-7,-8,-9,-2,-11,-10,-13,-12,]),'AMOUNT':([3,4,5,14,15,16,17,18,19,21,23,],[12,-3,-6,-5,-4,-7,-8,-9,-2,24,25,]),'ACCOUNT':([10,11,12,13,],[20,21,22,23,]),}
+_lr_action_items = {'STRING':([0,4,5,6,7,8,9,21,],[5,16,17,5,5,5,21,-2,]),'ASTERISK':([0,6,7,8,],[6,6,6,6,]),'EXCLAMATION':([0,6,7,8,],[7,7,7,7,]),'DATE':([0,6,7,8,],[8,8,8,8,]),'AT':([0,6,7,8,],[9,9,9,9,]),'$end':([1,2,12,15,22,23,25,26,28,29,30,],[0,-1,-15,-14,-16,-18,-17,-13,-11,-12,-10,]),'LT':([2,12,15,22,23,25,26,28,29,30,],[10,-15,-14,-16,-18,-17,-13,-11,-12,-10,]),'PIPE':([2,3,4,5,12,15,16,17,18,19,20,21,22,23,25,26,28,29,30,],[11,13,-3,-6,-15,-14,-5,-4,-7,-8,-9,-2,-16,-18,-17,-13,-11,-12,-10,]),'AMOUNT':([3,4,5,10,16,17,18,19,20,21,24,27,],[14,-3,-6,14,-5,-4,-7,-8,-9,-2,28,30,]),'NAME':([3,4,5,10,11,13,14,16,17,18,19,20,21,24,26,],[15,-3,-6,15,24,24,26,-5,-4,-7,-8,-9,-2,27,29,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -17,7 +17,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'statement':([0,],[1,]),'transaction':([0,],[2,]),'narration':([0,6,7,8,],[3,16,17,18,]),'payee':([0,6,7,8,],[4,4,4,4,]),}
+_lr_goto_items = {'statement':([0,],[1,]),'transaction':([0,],[2,]),'narration':([0,6,7,8,],[3,18,19,20,]),'payee':([0,6,7,8,],[4,4,4,4,]),'rev_posting':([3,10,],[12,22,]),'posting':([11,13,],[23,25,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -28,16 +28,21 @@ del _lr_goto_items
 _lr_productions = [
   ("S' -> statement","S'",1,None,None,None),
   ('statement -> transaction','statement',1,'p_statement_narration','costflow.py',113),
-  ('payee -> AT STRING','payee',2,'p_expression_payee','costflow.py',119),
-  ('narration -> payee','narration',1,'p_expression_narration','costflow.py',124),
-  ('narration -> STRING STRING','narration',2,'p_expression_narration','costflow.py',125),
-  ('narration -> payee STRING','narration',2,'p_expression_narration','costflow.py',126),
-  ('narration -> STRING','narration',1,'p_expression_narration','costflow.py',127),
-  ('narration -> ASTERISK narration','narration',2,'p_expression_narration','costflow.py',128),
-  ('narration -> EXCLAMATION narration','narration',2,'p_expression_narration','costflow.py',129),
-  ('narration -> DATE narration','narration',2,'p_expression_narration','costflow.py',130),
-  ('transaction -> narration AMOUNT ACCOUNT','transaction',3,'p_transaction','costflow.py',154),
-  ('transaction -> transaction LT ACCOUNT','transaction',3,'p_transaction','costflow.py',155),
-  ('transaction -> narration PIPE ACCOUNT AMOUNT','transaction',4,'p_transaction','costflow.py',156),
-  ('transaction -> transaction PIPE ACCOUNT AMOUNT','transaction',4,'p_transaction','costflow.py',157),
+  ('payee -> AT STRING','payee',2,'p_expression_payee','costflow.py',118),
+  ('narration -> payee','narration',1,'p_expression_narration','costflow.py',123),
+  ('narration -> STRING STRING','narration',2,'p_expression_narration','costflow.py',124),
+  ('narration -> payee STRING','narration',2,'p_expression_narration','costflow.py',125),
+  ('narration -> STRING','narration',1,'p_expression_narration','costflow.py',126),
+  ('narration -> ASTERISK narration','narration',2,'p_expression_narration','costflow.py',127),
+  ('narration -> EXCLAMATION narration','narration',2,'p_expression_narration','costflow.py',128),
+  ('narration -> DATE narration','narration',2,'p_expression_narration','costflow.py',129),
+  ('posting -> NAME NAME AMOUNT','posting',3,'p_posting','costflow.py',153),
+  ('posting -> NAME AMOUNT','posting',2,'p_posting','costflow.py',154),
+  ('rev_posting -> AMOUNT NAME NAME','rev_posting',3,'p_rev_posting','costflow.py',163),
+  ('rev_posting -> AMOUNT NAME','rev_posting',2,'p_rev_posting','costflow.py',164),
+  ('rev_posting -> NAME','rev_posting',1,'p_rev_posting','costflow.py',165),
+  ('transaction -> narration rev_posting','transaction',2,'p_transaction','costflow.py',177),
+  ('transaction -> transaction LT rev_posting','transaction',3,'p_transaction','costflow.py',178),
+  ('transaction -> narration PIPE posting','transaction',3,'p_transaction','costflow.py',179),
+  ('transaction -> transaction PIPE posting','transaction',3,'p_transaction','costflow.py',180),
 ]

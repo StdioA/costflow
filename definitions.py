@@ -17,14 +17,15 @@ class Payee:
 class Narration:
     payee: Payee
     desc: str
-    type_: str
-    date: date
+    type_: str = "*"
+    date: date = datetime.today().date()
 
 
 @dataclass
 class Posting:
     account: str
     amount: Decimal
+    currency: str = "CNY"
 
 
 class Transaction:
@@ -32,9 +33,10 @@ class Transaction:
         self.narration = narration
         self.postings = []
 
-    def push(self, account, amount):
-        self.postings.append(Posting(account, amount))
+    def push(self, posting):
+        self.postings.append(posting)
 
+    @property
     def amount_left(self):
         amount = Decimal(0)
         for posting in self.postings:
@@ -50,5 +52,5 @@ class Transaction:
         for posting in self.postings:
             # TODO: account finding
             # TODO: commodity
-            lines.append("\t{}\t{:.2f} CNY".format(posting.account, posting.amount))
+            lines.append("\t{}\t{:.2f} {}".format(posting.account, posting.amount, posting.currency))
         return "\n".join(lines)

@@ -1,7 +1,7 @@
 from datetime import date
 from dateutil import parser as dateparse
 from decimal import Decimal, InvalidOperation
-from definitions import Transaction, Payee, Narration
+from definitions import Transaction, Payee, Narration, Posting
 
 
 reserved = {
@@ -24,7 +24,7 @@ states = (
 # Tokens
 tokens = [
     "NUMBER", "STRING", "LT", "PIPE",
-    "ACCOUNT", "AMOUNT", "DATE",
+    "NAME", "AMOUNT", "DATE",
     "AT", "EXCLAMATION", "ASTERISK"
 ] + list(reserved.values())
 
@@ -94,7 +94,7 @@ def t_error(t):
 
 # Exclusive tokens for transaction state
 t_transaction_LT    = r'>'
-t_transaction_ACCOUNT = t_STRING            # TODO: 按照 beancount 的 lexer 处理
+t_transaction_NAME = t_STRING            # TODO: 按照 beancount 的 lexer 处理
 t_transaction_AMOUNT = t_NUMBER
 t_transaction_PIPE = t_PIPE
 
@@ -149,25 +149,50 @@ def p_expression_narration(t):
         t[0] = Narration(payee=Payee(""), desc=t[1], type_="*", date=None)
 
 
-def p_transaction(t):
-    """transaction : narration AMOUNT ACCOUNT
-                   | transaction LT ACCOUNT
-                   | narration PIPE ACCOUNT AMOUNT
-                   | transaction PIPE ACCOUNT AMOUNT
+def p_posting(t):
+    """posting : NAME NAME AMOUNT
+               | NAME AMOUNT
     """
-    if len(t) == 5:
-        trx = t[1]
-        if not isinstance(trx, Transaction):
-            trx = Transaction(t[1])
-        trx.push(t[3], t[4])
-        t[0] = trx
-    elif isinstance(t[2], Decimal):
-        t[0] = Transaction(t[1])
-        t[0].push(t[3], t[2])
+    if len(t) == 3:
+        t[0] = Posting(t[1], t[2])
     else:
-        trans = t[1]
-        trans.push(t[3], trans.amount_left())
-        t[0] = trans
+        t[0] = Posting(t[1], t[3], t[2])
+
+
+def p_rev_posting(t):
+    """rev_posting : AMOUNT NAME NAME
+                   | AMOUNT NAME
+                   | NAME
+    """
+    if len(t) == 2:
+        t[0] = Posting(t[1], None)
+    elif len(t) == 3:
+        t[0] = Posting(t[2], t[1])
+    else:
+        t[0] = Posting(t[3], t[1], t[2])    # amount currency account
+
+
+def p_transaction(t):
+    """transaction : narration rev_posting
+                   | transaction LT rev_posting
+                   | narration PIPE posting
+                   | transaction PIPE posting
+    """
+    trx = t[1]
+    if not isinstance(trx, Transaction):
+        trx = Transaction(t[1])
+
+    if t[2] == '|':
+        trx.push(t[3])
+    else:
+        if t[2] == '>':
+            posting = t[3]
+        else:
+            posting = t[2]
+        if posting.amount is None:
+            posting.amount = trx.amount_left
+        trx.push(posting)
+    t[0] = trx
 
 
 def p_error(t):
@@ -179,14 +204,14 @@ def p_error(t):
 import ply.lex as lex
 import ply.yacc as yacc
 
-s = '! @abc def -24.23 from > to'
+s = '! @abc def -24.23 BTC from > 2 USD to'
 parser = yacc.yacc()
 print("input:", s)
 t = parser.parse(s, lexer=lex.lex())
 print(t.render())
 
 print()
-s = '''2021-09-24 ! 麦当劳 汉堡
+s = '''2021-09-24 麦当劳 汉堡
     | from 24 | to -18 
     | to2 -6'''
 parser = yacc.yacc()
