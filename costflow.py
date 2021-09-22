@@ -2,23 +2,26 @@ from datetime import date
 from dateutil import parser as dateparse
 from decimal import Decimal, InvalidOperation
 from definitions import Transaction, Payee, Narration, Posting
+import ply.lex as lex
+import ply.yacc as yacc
 
 
+# TODO: Implement other commands
 reserved = {
-    'open' : 'OPEN',
-    'close' : 'CLOSE',
-    'commodity' : 'COMMODITY',
-    'option' : 'OPTION',
-    'note' : 'NOTE',
-    'balance' : 'BALANCE',
-    'pad' : 'PAD',
-    'price' : 'PRICE',
-    'event' : 'EVENT',
+    'open': 'OPEN',
+    'close': 'CLOSE',
+    'commodity': 'COMMODITY',
+    'option': 'OPTION',
+    'note': 'NOTE',
+    'balance': 'BALANCE',
+    'pad': 'PAD',
+    'price': 'PRICE',
+    'event': 'EVENT',
  }
 
 # States
 states = (
-    ('transaction','exclusive'),
+    ('transaction', 'exclusive'),
 )
 
 # Tokens
@@ -93,7 +96,7 @@ def t_error(t):
 
 
 # Exclusive tokens for transaction state
-t_transaction_LT    = r'>'
+t_transaction_LT = r'>'
 t_transaction_ADD = r"\+"
 t_transaction_NAME = t_STRING            # TODO: 按照 beancount 的 lexer 处理
 t_transaction_AMOUNT = t_NUMBER
@@ -115,6 +118,7 @@ def p_statement_narration(t):
     t[1].build()
     t[0] = t[1]
 
+
 # Expressions
 def p_expression_payee(t):
     "payee : AT STRING"
@@ -131,10 +135,10 @@ def p_expression_narration(t):
                  | DATE narration"""
 
     if isinstance(t[1], date):
-        t[2].date = t[1]
+        t[2].date_ = t[1]
         t[0] = t[2]
         return
-    
+
     if t[1] in ("*", "!"):
         t[2].type_ = t[1]
         t[0] = t[2]
@@ -177,6 +181,7 @@ def p_rev_posting(t):
     else:
         t[0] = Posting(t[3], t[1], t[2])    # amount currency account
 
+
 def p_rev_postings(t):
     """rev_postings : rev_posting
                     | rev_postings ADD rev_posting
@@ -186,6 +191,7 @@ def p_rev_postings(t):
     else:
         t[1].append(t[3])
         t[0] = t[1]
+
 
 def p_transaction(t):
     """transaction : narration rev_postings
@@ -217,23 +223,19 @@ def p_error(t):
 
 
 # ----- main -----
-import ply.lex as lex
-import ply.yacc as yacc
-
-s = '! @abc def -100 from + 300 CNY from2 > USD to1 + to2'
-parser = yacc.yacc()
-print("input:", s)
-t = parser.parse(s, lexer=lex.lex())
-print(t.render())
-
-print()
-s = '''2021-09-24 麦当劳 汉堡
-    | from 24 | to -18 
-    | to2 -6'''
-parser = yacc.yacc()
-print("input:", s)
-t = parser.parse(s, lexer=lex.lex())
-print(t.render())
+if __name__ == '__main__':
+    inputs = [
+        '! @abc def -100 from + 300 CNY from2 > USD to1 + to2',
+        '''2021-09-24 麦当劳 汉堡
+            | from 24 | to -18
+            | to2 -6''',
+    ]
+    for s in inputs:
+        parser = yacc.yacc()
+        print("input:", s)
+        t = parser.parse(s, lexer=lex.lex())
+        print(t.render())
+        print()
 
 # lexer = lex.lex()
 # lexer.input(s)

@@ -3,22 +3,20 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 
+@dataclass
 class Payee:
-    def __init__(self, s):
-        self.payee = s
-    
+    payee: str
+
     def __str__(self):
         return self.payee
 
-    def __repr__(self):
-        return f"@{self.payee}"
 
 @dataclass
 class Narration:
     payee: Payee
     desc: str
     type_: str = "*"
-    date: date = datetime.today().date()
+    date_: date = datetime.today().date()
 
 
 DEFAULT_CURRENCY = "CNY"
@@ -45,7 +43,7 @@ class Transaction:
         for posting in self.postings:
             amount -= posting.amount
         return amount
-    
+
     def rebalance(self):
         amount = Decimal(0)
         empty_amounts = []
@@ -60,7 +58,7 @@ class Transaction:
         avg_amount = amount / len(empty_amounts)
         for amount in empty_amounts:
             amount.amount = avg_amount
-        
+
     def build(self):
         currency = None
         empty = []
@@ -75,7 +73,7 @@ class Transaction:
             posting.currency = currency
 
     def render(self):
-        date = self.narration.date
+        date = self.narration.date_
         if not date:
             date = datetime.today().date()
 
