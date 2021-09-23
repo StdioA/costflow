@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from collections import defaultdict
 from abc import ABCMeta, abstractmethod
+from utils import check_account
 
 
 class Entry(metaclass=ABCMeta):
@@ -84,3 +85,31 @@ class Transaction(Entry):
             # TODO: account finding
             lines.append("\t{}\t{:.2f} {}".format(posting.account, posting.amount, posting.currency))
         return "\n".join(lines)
+
+
+@dataclass
+class Comment(Entry):
+    content: str
+
+    def build(self):
+        pass
+
+    def render(self):
+        return f";{self.content}"
+
+
+@dataclass
+class UnaryEntry(Entry):
+    directive: str
+    content: str
+    date_: date = None
+
+    def build(self):
+        if self.directive in ("open", "close"):
+            check_account(self.content)
+
+    def render(self):
+        date = self.date_
+        if not date:
+            date = datetime.today().date()
+        return f"{date} {self.directive} {self.content}"

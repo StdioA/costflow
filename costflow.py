@@ -1,7 +1,10 @@
 from datetime import date
 from dateutil import parser as dateparse
 from decimal import Decimal, InvalidOperation
-from definitions import Transaction, Payee, Narration, Posting
+from definitions import (
+    Transaction, Payee, Narration,
+    Posting, Comment, UnaryEntry,
+)
 import ply.lex as lex
 import ply.yacc as yacc
 
@@ -17,20 +20,33 @@ reserved = {
     'pad': 'PAD',
     'price': 'PRICE',
     'event': 'EVENT',
- }
+}
 
 # States
 states = (
     ('transaction', 'exclusive'),
+    ('comment', 'exclusive'),
 )
 
 # Tokens
 tokens = [
     "NUMBER", "STRING",
     "NAME", "AMOUNT", "DATE",
+    "COMMENT",
 ] + list(reserved.values())
 
 literals = "@!*|+>"
+
+
+@lex.Token(f"({'|'.join(reserved.keys())})")
+def t_RESERVED(t):
+    type_ = reserved.get(t.value, None)
+    if type_:
+        t.type = reserved.get(t.value, None)
+        return t
+    # Fallback (may be useless)
+    t.type = "STRING"
+    return t_STRING(t)
 
 
 def t_DATE(t):
@@ -74,8 +90,11 @@ def t_NUMBER(t):
     except ValueError:
         print("Integer value too large %d", t.value)
         t.value = 0
-    t.lexer.begin("transaction")
-    t.type = "AMOUNT"
+
+    if t.lexer.current_state() == "INITIAL":
+        t.lexer.push_state("transaction")
+    if t.lexer.current_state() == "transaction":
+        t.type = "AMOUNT"
     return t
 
 
@@ -92,6 +111,12 @@ def t_error(t):
     t.lexer.skip(1)
 
 
+def t_COMMENT(t):
+    r'(;|//)'
+    t.lexer.begin("comment")
+    return t
+
+
 # Exclusive tokens for transaction state
 t_transaction_NAME = t_STRING
 t_transaction_AMOUNT = t_NUMBER
@@ -101,25 +126,39 @@ t_transaction_ignore = t_ignore
 t_transaction_error = t_error
 
 
+# Exclusive tokens for transaction state
+t_comment_STRING = r".+"
+t_comment_ignore = ""
+t_comment_error = t_error
+
 # Statements
 precedence = (
     ('right', '@'),
 )
 
 
-def p_statement_narration(t):
-    "statement : transaction"
+def p_entry_transaction(t):
+    "entry : transaction"
+    t[1].build()
+    t[0] = t[1]
+
+
+def p_entry_open_close(t):
+    """entry : comment
+             | open
+             | close"""
     t[1].build()
     t[0] = t[1]
 
 
 # Expressions
-def p_expression_payee(t):
+# --- Transaction ---
+def p_payee(t):
     "payee : '@' STRING"
     t[0] = Payee(t[2])
 
 
-def p_expression_narration(t):
+def p_narration(t):
     """narration : payee
                  | STRING STRING
                  | payee STRING
@@ -211,6 +250,25 @@ def p_transaction(t):
     t[0] = trx
 
 
+# --- Comment ---
+def p_comment(t):
+    """comment : COMMENT STRING"""
+    t[0] = Comment(t[2])
+
+
+# --- Open & Close ---
+def p_open_close(t):
+    """open : OPEN STRING
+            | DATE open
+       close : CLOSE STRING
+             | DATE close"""
+    if isinstance(t[1], date):
+        t[2].date_ = t[1]
+        t[0] = t[2]
+    else:
+        t[0] = UnaryEntry(t[1], t[2])
+
+
 def p_error(t):
     print("Syntax error at '%s'" % t.value)
 
@@ -218,22 +276,16 @@ def p_error(t):
 # ----- main -----
 if __name__ == '__main__':
     inputs = [
-        '! @abc def -100 USD from + 300 CNY from2 > USD to1 + CNY to2',
-        '''2021-09-24 麦当劳 汉堡
-            | from 24 | to -18
-            | to2 -6''',
+        '2021-01-01 open Assets:123',
     ]
     for s in inputs:
         parser = yacc.yacc()
         print("input:", s)
-        t = parser.parse(s, lexer=lex.lex())
+        t = parser.parse(s, lexer=lex.lex(), debug=False)
         print(t.render())
         print()
 
-# lexer = lex.lex()
-# lexer.input(s)
-# while True:
-#     tok = lexer.token()
-#     if tok is None:
-#         break
-#     print(tok)
+        lexer = lex.lex()
+        lexer.input(s)
+        for tok in lexer:
+            print(tok)
