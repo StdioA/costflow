@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from collections import defaultdict
 from abc import ABCMeta, abstractmethod
@@ -42,10 +42,10 @@ class Posting:
     currency: str = None
 
 
+@dataclass
 class Transaction(Entry):
-    def __init__(self, narration):
-        self.narration = narration
-        self.postings = []
+    narration: Narration
+    postings: list = field(default_factory=list)
 
     def push(self, posting):
         self.postings.append(posting)
@@ -99,7 +99,7 @@ class Comment(Entry):
         pass
 
     def render(self):
-        return f";{self.content}"
+        return f"; {self.content}"
 
 
 @dataclass

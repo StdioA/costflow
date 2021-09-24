@@ -139,7 +139,7 @@ def t_error(t):
 
 
 def t_COMMENT(t):
-    r'(;|//)'
+    r'(;|//)\s+'
     t.lexer.begin("comment")
     return t
 
@@ -190,6 +190,12 @@ def p_normal_entry(t):
     """entry : option
              | event
              | commodity"""
+    t[0] = t[1]
+
+
+# Only for unit testing
+def p_debug_entry(t):
+    """entry : narration"""
     t[0] = t[1]
 
 
@@ -365,19 +371,19 @@ def p_pad(t):
 
 
 def p_error(t):
-    print("Syntax error at '%s'" % t.value)
+    print("Syntax error at '%s'" % t)
 
 
 # ----- main -----
 if __name__ == '__main__':
     inputs = [
-        "2019-07-01 note bofa Called about fraudulent card.",
+        "2019-07-01 * 麦当劳 汉堡",
     ]
     for s in inputs:
         parser = yacc.yacc()
         print("input:", s)
-        t = parser.parse(s, lexer=lex.lex(), debug=True)
-        print(t.render())
+        t = parser.parse(s, lexer=lex.lex(), debug=False)
+        print("RESULT", t)
         print()
 
         lexer = lex.lex()
