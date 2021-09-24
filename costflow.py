@@ -2,38 +2,44 @@ from datetime import date
 from dateutil import parser as dateparse
 from decimal import Decimal, InvalidOperation
 from definitions import (
-    Transaction, Payee, Narration,
+    Balance, KVEntry, Option, Pad, Transaction, Payee, Narration,
     Posting, Comment, UnaryEntry,
 )
 import ply.lex as lex
 import ply.yacc as yacc
 
 
-# TODO: Implement other commands
+# TODO: Implement other commands (price)
 reserved = {
     'open': 'OPEN',
     'close': 'CLOSE',
     'commodity': 'COMMODITY',
-    'option': 'OPTION',
-    'note': 'NOTE',
     'balance': 'BALANCE',
     'pad': 'PAD',
-    'price': 'PRICE',
+    # 'price': 'PRICE',
+}
+
+kv_directives = {
+    'option': 'OPTION',
+    'note': 'NOTE',
     'event': 'EVENT',
 }
 
 # States
-states = (
+states = [
     ('transaction', 'exclusive'),
     ('comment', 'exclusive'),
-)
+    ('const', 'inclusive'),
+    ('kvkey', 'inclusive'),
+    ('anyvalue', 'exclusive'),
+]
 
 # Tokens
 tokens = [
     "NUMBER", "STRING",
     "NAME", "AMOUNT", "DATE",
     "COMMENT",
-] + list(reserved.values())
+] + list(reserved.values()) + list(kv_directives.values())
 
 literals = "@!*|+>"
 
@@ -43,12 +49,26 @@ def t_RESERVED(t):
     type_ = reserved.get(t.value, None)
     if type_:
         t.type = reserved.get(t.value, None)
+        t.lexer.push_state("const")
         return t
     # Fallback (may be useless)
     t.type = "STRING"
     return t_STRING(t)
 
 
+@lex.Token(f"({'|'.join(kv_directives.keys())})")
+def t_KV(t):
+    type_ = kv_directives.get(t.value, None)
+    if type_:
+        t.type = type_
+        t.lexer.push_state("kvkey")
+        return t
+    # Fallback (may be useless)
+    t.type = "STRING"
+    return t_STRING(t)
+
+
+# TODO: handle more date formats on
 def t_DATE(t):
     r"[0-9]{4,}[\-/][0-9]+[\-/][0-9]+"
     t.value = dateparse.parse(t.value).date()
@@ -63,8 +83,15 @@ def t_PIPE(t):
 
 
 def t_STRING(t):
-    r'[\w:]+'
+    r'[\w,:\.]+'
     value = t.value
+
+    # Check if any value is needed
+    # e.g. OPTION -> (kvkey) some_key -> (anyvalue) one two three
+    if t.lexer.current_state() == 'kvkey':
+        t.lexer.push_state("anyvalue")
+        return t
+
     try:
         v = Decimal(value)
         t.type = "NUMBER"
@@ -76,7 +103,7 @@ def t_STRING(t):
 
 
 def t_STRING_LETERAL(t):
-    r'\"([^\\\"]|\\.)*\" '
+    r'\"([^\\\"]|\\.)*\"'
     t.type = "STRING"
     t.value = t.value[1:-1]
     t.lexpos += 1
@@ -121,15 +148,20 @@ def t_COMMENT(t):
 t_transaction_NAME = t_STRING
 t_transaction_AMOUNT = t_NUMBER
 
-t_transaction_newline = t_newline
-t_transaction_ignore = t_ignore
-t_transaction_error = t_error
+t_ANY_newline = t_newline
+t_ANY_ignore = t_ignore
+t_ANY_error = t_error
 
 
-# Exclusive tokens for transaction state
+# Exclusive tokens for comment state
 t_comment_STRING = r".+"
 t_comment_ignore = ""
 t_comment_error = t_error
+
+
+# Exclusive tokens for anyvalue state
+t_anyvalue_STRING = r".+"
+t_anyvalue_LETERAL = t_STRING_LETERAL
 
 # Statements
 precedence = (
@@ -146,8 +178,18 @@ def p_entry_transaction(t):
 def p_entry_open_close(t):
     """entry : comment
              | open
-             | close"""
+             | close
+             | note
+             | balance
+             | pad"""
     t[1].build()
+    t[0] = t[1]
+
+
+def p_normal_entry(t):
+    """entry : option
+             | event
+             | commodity"""
     t[0] = t[1]
 
 
@@ -261,12 +303,65 @@ def p_open_close(t):
     """open : OPEN STRING
             | DATE open
        close : CLOSE STRING
-             | DATE close"""
+             | DATE close
+       commodity : COMMODITY STRING
+                 | DATE commodity"""
     if isinstance(t[1], date):
         t[2].date_ = t[1]
         t[0] = t[2]
     else:
         t[0] = UnaryEntry(t[1], t[2])
+
+
+# --- Option ---
+def p_option(t):
+    """option : OPTION STRING STRING
+    """
+    if len(t) == 4:
+        # Init option
+        t[0] = Option(t[2], t[3])
+    else:
+        t[1].value += f" {t[2]}"
+        t[0] = t[1]
+
+
+def p_event_note(t):
+    """event : EVENT STRING STRING
+             | DATE event
+       note  : NOTE STRING STRING
+             | DATE note"""
+    if isinstance(t[1], date):
+        t[2].date_ = t[1]
+        t[0] = t[2]
+    elif len(t) == 4:
+        t[0] = KVEntry(t[1], t[2], t[3])
+    else:
+        t[1].value += f" {t[2]}"
+        t[0] = t[1]
+
+
+def p_balance(t):
+    """balance : BALANCE STRING NUMBER
+               | DATE balance
+               | balance STRING"""
+    if len(t) == 4:
+        t[0] = Balance(t[2], t[3])
+    elif isinstance(t[1], date):
+        t[2].date_ = t[1]
+        t[0] = t[2]
+    else:
+        t[1].currency = t[2]
+        t[0] = t[1]
+
+
+def p_pad(t):
+    """pad : PAD STRING STRING
+           | DATE pad"""
+    if len(t) == 4:
+        t[0] = Pad(t[2], t[3])
+    else:
+        t[2].date_ = t[1]
+        t[0] = t[2]
 
 
 def p_error(t):
@@ -276,12 +371,12 @@ def p_error(t):
 # ----- main -----
 if __name__ == '__main__':
     inputs = [
-        '2021-01-01 open Assets:123',
+        "2019-07-01 note bofa Called about fraudulent card.",
     ]
     for s in inputs:
         parser = yacc.yacc()
         print("input:", s)
-        t = parser.parse(s, lexer=lex.lex(), debug=False)
+        t = parser.parse(s, lexer=lex.lex(), debug=True)
         print(t.render())
         print()
 

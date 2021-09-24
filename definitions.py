@@ -11,6 +11,10 @@ class Entry(metaclass=ABCMeta):
     def render(self):
         pass
 
+    def fill_date(self):
+        if self.date_ is None:
+            self.date_ = datetime.today().date()
+
 
 @dataclass
 class Payee:
@@ -109,7 +113,66 @@ class UnaryEntry(Entry):
             check_account(self.content)
 
     def render(self):
-        date = self.date_
-        if not date:
-            date = datetime.today().date()
-        return f"{date} {self.directive} {self.content}"
+        self.fill_date()
+        return f"{self.date_} {self.directive} {self.content}"
+
+
+@dataclass
+class Option(Entry):
+    key: str
+    value: str
+
+    def render(self):
+        return f'option "{self.key}" "{self.value}"'
+
+
+@dataclass
+class KVEntry(Entry):
+    directive: str
+    key: str
+    value: str
+    date_: date = None
+
+    def build(self):
+        # TODO: account finding on note directive
+        pass
+
+    def render(self):
+        self.fill_date()
+
+        # the key in note directive stands for account
+        key = self.key
+        if self.directive != "note":
+            key = f'"{key}"'
+        return f'{self.date_} {self.directive} {key} "{self.value}"'
+
+
+@dataclass
+class Balance(Entry):
+    account: str
+    amount: Decimal
+    currency: str = DEFAULT_CURRENCY
+    date_: date = None
+
+    def build(self):
+        # TODO: account finding on account directive
+        pass
+
+    def render(self):
+        self.fill_date()
+        return f'{self.date_} balance {self.account} {self.amount} {self.currency}'
+
+
+@dataclass
+class Pad(Entry):
+    account: str
+    to_account: str
+    date_: date = None
+
+    def build(self):
+        # TODO: account finding
+        pass
+
+    def render(self):
+        self.fill_date()
+        return f'{self.date_} pad {self.account} {self.to_account}'

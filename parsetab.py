@@ -6,9 +6,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = "right@AMOUNT BALANCE CLOSE COMMENT COMMODITY DATE EVENT NAME NOTE NUMBER OPEN OPTION PAD PRICE STRINGentry : transactionentry : comment\n             | open\n             | closepayee : '@' STRINGnarration : payee\n                 | STRING STRING\n                 | payee STRING\n                 | STRING\n                 | '*' narration\n                 | '!' narration\n                 | DATE narrationposting : NAME NAME AMOUNT\n               | NAME AMOUNT\n    rev_posting : AMOUNT NAME NAME\n                   | NAME NAME\n                   | AMOUNT NAME\n                   | NAME\n    rev_postings : rev_posting\n                    | rev_postings '+' rev_posting\n    transaction : narration rev_postings\n                   | transaction '>' rev_postings\n                   | narration '|' posting\n                   | transaction '|' posting\n    comment : COMMENT STRINGopen : OPEN STRING\n            | DATE open\n       close : CLOSE STRING\n             | DATE close"
+_lr_signature = "right@AMOUNT BALANCE CLOSE COMMENT COMMODITY DATE EVENT NAME NOTE NUMBER OPEN OPTION PAD STRINGentry : transactionentry : comment\n             | open\n             | close\n             | note\n             | balance\n             | padentry : option\n             | event\n             | commoditypayee : '@' STRINGnarration : payee\n                 | STRING STRING\n                 | payee STRING\n                 | STRING\n                 | '*' narration\n                 | '!' narration\n                 | DATE narrationposting : NAME NAME AMOUNT\n               | NAME AMOUNT\n    rev_posting : AMOUNT NAME NAME\n                   | NAME NAME\n                   | AMOUNT NAME\n                   | NAME\n    rev_postings : rev_posting\n                    | rev_postings '+' rev_posting\n    transaction : narration rev_postings\n                   | transaction '>' rev_postings\n                   | narration '|' posting\n                   | transaction '|' posting\n    comment : COMMENT STRINGopen : OPEN STRING\n            | DATE open\n       close : CLOSE STRING\n             | DATE close\n       commodity : COMMODITY STRING\n                 | DATE commodityoption : OPTION STRING STRING\n    event : EVENT STRING STRING\n             | DATE event\n       note  : NOTE STRING STRING\n             | DATE notebalance : BALANCE STRING NUMBER\n               | DATE balance\n               | balance STRINGpad : PAD STRING STRING\n           | DATE pad"
     
-_lr_action_items = {'COMMENT':([0,],[7,]),'OPEN':([0,10,],[9,9,]),'DATE':([0,10,13,14,32,],[10,10,32,32,32,]),'CLOSE':([0,10,],[11,11,]),'STRING':([0,7,8,9,10,11,12,13,14,15,32,34,],[8,23,24,25,8,29,30,8,8,34,8,-5,]),'*':([0,10,13,14,32,],[13,13,13,13,13,]),'!':([0,10,13,14,32,],[14,14,14,14,14,]),'@':([0,10,13,14,32,],[15,15,15,15,15,]),'$end':([1,2,3,4,5,18,20,22,23,25,26,27,29,35,36,39,40,41,43,44,45,46,],[0,-1,-2,-3,-4,-21,-19,-18,-25,-26,-27,-29,-28,-22,-24,-23,-17,-16,-14,-20,-15,-13,]),'>':([2,18,20,22,35,36,39,40,41,43,44,45,46,],[16,-21,-19,-18,-22,-24,-23,-17,-16,-14,-20,-15,-13,]),'|':([2,6,8,12,18,20,22,24,28,30,31,33,34,35,36,39,40,41,43,44,45,46,],[17,19,-9,-6,-21,-19,-18,-7,-12,-8,-10,-11,-5,-22,-24,-23,-17,-16,-14,-20,-15,-13,]),'AMOUNT':([6,8,12,16,24,28,30,31,33,34,37,38,42,],[21,-9,-6,21,-7,-12,-8,-10,-11,-5,43,21,46,]),'NAME':([6,8,12,16,17,19,21,22,24,28,30,31,33,34,37,38,40,],[22,-9,-6,22,37,37,40,41,-7,-12,-8,-10,-11,-5,42,22,45,]),'+':([18,20,22,35,40,41,44,45,],[38,-19,-18,38,-17,-16,-20,-15,]),}
+_lr_action_items = {'COMMENT':([0,],[13,]),'OPEN':([0,16,],[15,15,]),'DATE':([0,16,25,26,56,],[16,16,56,56,56,]),'CLOSE':([0,16,],[17,17,]),'NOTE':([0,16,],[18,18,]),'BALANCE':([0,16,],[19,19,]),'PAD':([0,16,],[20,20,]),'OPTION':([0,],[21,]),'EVENT':([0,16,],[22,22,]),'COMMODITY':([0,16,],[23,23,]),'STRING':([0,7,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,30,42,48,50,51,52,56,58,67,],[14,30,36,37,38,14,47,48,49,50,51,52,53,54,14,14,58,-45,30,66,68,69,70,14,-11,-43,]),'*':([0,16,25,26,56,],[25,25,25,25,25,]),'!':([0,16,25,26,56,],[26,26,26,26,26,]),'@':([0,16,25,26,56,],[27,27,27,27,27,]),'$end':([1,2,3,4,5,6,7,8,9,10,11,30,31,33,35,36,38,39,40,41,42,43,44,45,47,53,59,60,63,64,65,66,67,68,69,70,72,73,74,75,],[0,-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-45,-27,-25,-24,-31,-32,-33,-35,-42,-44,-47,-40,-37,-34,-36,-28,-30,-29,-23,-22,-41,-43,-46,-38,-39,-20,-26,-21,-19,]),'>':([2,31,33,35,59,60,63,64,65,72,73,74,75,],[28,-27,-25,-24,-28,-30,-29,-23,-22,-20,-26,-21,-19,]),'|':([2,12,14,24,31,33,35,37,46,54,55,57,58,59,60,63,64,65,72,73,74,75,],[29,32,-15,-12,-27,-25,-24,-13,-18,-14,-16,-17,-11,-28,-30,-29,-23,-22,-20,-26,-21,-19,]),'AMOUNT':([12,14,24,28,37,46,54,55,57,58,61,62,71,],[34,-15,-12,34,-13,-18,-14,-16,-17,-11,72,34,75,]),'NAME':([12,14,24,28,29,32,34,35,37,46,54,55,57,58,61,62,64,],[35,-15,-12,35,61,61,64,65,-13,-18,-14,-16,-17,-11,71,35,74,]),'+':([31,33,35,59,64,65,73,74,],[62,-25,-24,62,-23,-22,-26,-21,]),'NUMBER':([49,],[67,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -17,7 +17,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'entry':([0,],[1,]),'transaction':([0,],[2,]),'comment':([0,],[3,]),'open':([0,10,],[4,26,]),'close':([0,10,],[5,27,]),'narration':([0,10,13,14,32,],[6,28,31,33,28,]),'payee':([0,10,13,14,32,],[12,12,12,12,12,]),'rev_postings':([6,16,],[18,35,]),'rev_posting':([6,16,38,],[20,20,44,]),'posting':([17,19,],[36,39,]),}
+_lr_goto_items = {'entry':([0,],[1,]),'transaction':([0,],[2,]),'comment':([0,],[3,]),'open':([0,16,],[4,39,]),'close':([0,16,],[5,40,]),'note':([0,16,],[6,41,]),'balance':([0,16,],[7,42,]),'pad':([0,16,],[8,43,]),'option':([0,],[9,]),'event':([0,16,],[10,44,]),'commodity':([0,16,],[11,45,]),'narration':([0,16,25,26,56,],[12,46,55,57,46,]),'payee':([0,16,25,26,56,],[24,24,24,24,24,]),'rev_postings':([12,28,],[31,59,]),'rev_posting':([12,28,62,],[33,33,73,]),'posting':([29,32,],[60,63,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -27,33 +27,51 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> entry","S'",1,None,None,None),
-  ('entry -> transaction','entry',1,'p_entry_transaction','costflow.py',141),
-  ('entry -> comment','entry',1,'p_entry_open_close','costflow.py',147),
-  ('entry -> open','entry',1,'p_entry_open_close','costflow.py',148),
-  ('entry -> close','entry',1,'p_entry_open_close','costflow.py',149),
-  ('payee -> @ STRING','payee',2,'p_payee','costflow.py',157),
-  ('narration -> payee','narration',1,'p_narration','costflow.py',162),
-  ('narration -> STRING STRING','narration',2,'p_narration','costflow.py',163),
-  ('narration -> payee STRING','narration',2,'p_narration','costflow.py',164),
-  ('narration -> STRING','narration',1,'p_narration','costflow.py',165),
-  ('narration -> * narration','narration',2,'p_narration','costflow.py',166),
-  ('narration -> ! narration','narration',2,'p_narration','costflow.py',167),
-  ('narration -> DATE narration','narration',2,'p_narration','costflow.py',168),
-  ('posting -> NAME NAME AMOUNT','posting',3,'p_posting','costflow.py',192),
-  ('posting -> NAME AMOUNT','posting',2,'p_posting','costflow.py',193),
-  ('rev_posting -> AMOUNT NAME NAME','rev_posting',3,'p_rev_posting','costflow.py',202),
-  ('rev_posting -> NAME NAME','rev_posting',2,'p_rev_posting','costflow.py',203),
-  ('rev_posting -> AMOUNT NAME','rev_posting',2,'p_rev_posting','costflow.py',204),
-  ('rev_posting -> NAME','rev_posting',1,'p_rev_posting','costflow.py',205),
-  ('rev_postings -> rev_posting','rev_postings',1,'p_rev_postings','costflow.py',219),
-  ('rev_postings -> rev_postings + rev_posting','rev_postings',3,'p_rev_postings','costflow.py',220),
-  ('transaction -> narration rev_postings','transaction',2,'p_transaction','costflow.py',230),
-  ('transaction -> transaction > rev_postings','transaction',3,'p_transaction','costflow.py',231),
-  ('transaction -> narration | posting','transaction',3,'p_transaction','costflow.py',232),
-  ('transaction -> transaction | posting','transaction',3,'p_transaction','costflow.py',233),
-  ('comment -> COMMENT STRING','comment',2,'p_comment','costflow.py',255),
-  ('open -> OPEN STRING','open',2,'p_open_close','costflow.py',261),
-  ('open -> DATE open','open',2,'p_open_close','costflow.py',262),
-  ('close -> CLOSE STRING','close',2,'p_open_close','costflow.py',263),
-  ('close -> DATE close','close',2,'p_open_close','costflow.py',264),
+  ('entry -> transaction','entry',1,'p_entry_transaction','costflow.py',173),
+  ('entry -> comment','entry',1,'p_entry_open_close','costflow.py',179),
+  ('entry -> open','entry',1,'p_entry_open_close','costflow.py',180),
+  ('entry -> close','entry',1,'p_entry_open_close','costflow.py',181),
+  ('entry -> note','entry',1,'p_entry_open_close','costflow.py',182),
+  ('entry -> balance','entry',1,'p_entry_open_close','costflow.py',183),
+  ('entry -> pad','entry',1,'p_entry_open_close','costflow.py',184),
+  ('entry -> option','entry',1,'p_normal_entry','costflow.py',190),
+  ('entry -> event','entry',1,'p_normal_entry','costflow.py',191),
+  ('entry -> commodity','entry',1,'p_normal_entry','costflow.py',192),
+  ('payee -> @ STRING','payee',2,'p_payee','costflow.py',199),
+  ('narration -> payee','narration',1,'p_narration','costflow.py',204),
+  ('narration -> STRING STRING','narration',2,'p_narration','costflow.py',205),
+  ('narration -> payee STRING','narration',2,'p_narration','costflow.py',206),
+  ('narration -> STRING','narration',1,'p_narration','costflow.py',207),
+  ('narration -> * narration','narration',2,'p_narration','costflow.py',208),
+  ('narration -> ! narration','narration',2,'p_narration','costflow.py',209),
+  ('narration -> DATE narration','narration',2,'p_narration','costflow.py',210),
+  ('posting -> NAME NAME AMOUNT','posting',3,'p_posting','costflow.py',234),
+  ('posting -> NAME AMOUNT','posting',2,'p_posting','costflow.py',235),
+  ('rev_posting -> AMOUNT NAME NAME','rev_posting',3,'p_rev_posting','costflow.py',244),
+  ('rev_posting -> NAME NAME','rev_posting',2,'p_rev_posting','costflow.py',245),
+  ('rev_posting -> AMOUNT NAME','rev_posting',2,'p_rev_posting','costflow.py',246),
+  ('rev_posting -> NAME','rev_posting',1,'p_rev_posting','costflow.py',247),
+  ('rev_postings -> rev_posting','rev_postings',1,'p_rev_postings','costflow.py',261),
+  ('rev_postings -> rev_postings + rev_posting','rev_postings',3,'p_rev_postings','costflow.py',262),
+  ('transaction -> narration rev_postings','transaction',2,'p_transaction','costflow.py',272),
+  ('transaction -> transaction > rev_postings','transaction',3,'p_transaction','costflow.py',273),
+  ('transaction -> narration | posting','transaction',3,'p_transaction','costflow.py',274),
+  ('transaction -> transaction | posting','transaction',3,'p_transaction','costflow.py',275),
+  ('comment -> COMMENT STRING','comment',2,'p_comment','costflow.py',297),
+  ('open -> OPEN STRING','open',2,'p_open_close','costflow.py',303),
+  ('open -> DATE open','open',2,'p_open_close','costflow.py',304),
+  ('close -> CLOSE STRING','close',2,'p_open_close','costflow.py',305),
+  ('close -> DATE close','close',2,'p_open_close','costflow.py',306),
+  ('commodity -> COMMODITY STRING','commodity',2,'p_open_close','costflow.py',307),
+  ('commodity -> DATE commodity','commodity',2,'p_open_close','costflow.py',308),
+  ('option -> OPTION STRING STRING','option',3,'p_option','costflow.py',318),
+  ('event -> EVENT STRING STRING','event',3,'p_event_note','costflow.py',329),
+  ('event -> DATE event','event',2,'p_event_note','costflow.py',330),
+  ('note -> NOTE STRING STRING','note',3,'p_event_note','costflow.py',331),
+  ('note -> DATE note','note',2,'p_event_note','costflow.py',332),
+  ('balance -> BALANCE STRING NUMBER','balance',3,'p_balance','costflow.py',344),
+  ('balance -> DATE balance','balance',2,'p_balance','costflow.py',345),
+  ('balance -> balance STRING','balance',2,'p_balance','costflow.py',346),
+  ('pad -> PAD STRING STRING','pad',3,'p_pad','costflow.py',358),
+  ('pad -> DATE pad','pad',2,'p_pad','costflow.py',359),
 ]
