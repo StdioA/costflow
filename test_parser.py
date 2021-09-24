@@ -1,10 +1,12 @@
 from decimal import Decimal
 import pytest
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import costflow
 from ply import lex, yacc
-from definitions import Balance, KVEntry, Option, Pad, Transaction, \
-                        Payee, Narration, Posting, Comment, UnaryEntry
+from definitions import (
+    Balance, KVEntry, Option, Pad, Transaction,
+    Payee, Narration, Posting, Comment, UnaryEntry
+)
 
 
 @pytest.fixture
@@ -20,6 +22,37 @@ def parser():
 @pytest.fixture
 def lexer():
     return lex.lex(module=costflow)
+
+
+def test_date(lexer, today):
+    testcases = (
+        (
+            "1970-01-01",
+            (date(1970, 1, 1), ),
+        ),
+        (
+            # Abbreviation
+            "tomorrow Sep 24",
+            (
+                today + timedelta(days=1),
+                "Sep",          # parsed as a STRING
+                Decimal(24),    # parsed as an AMOUNT
+            ),
+        ),
+        (
+            # "%b %d" format
+            "May 31 ytd",
+            (
+                date(today.year, 5, 31),
+                "ytd",     # Parsed as a STRING
+            ),
+        )
+    )
+    for tc in testcases:
+        lex = lexer.clone()
+        lex.input(tc[0])
+        for exp, got in zip(tc[1], lex):
+            assert exp == got.value
 
 
 def test_narration(parser, lexer):

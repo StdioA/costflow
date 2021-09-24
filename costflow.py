@@ -1,12 +1,11 @@
-from datetime import date
+from datetime import date, datetime, timedelta
 from dateutil import parser as dateparse
 from decimal import Decimal, InvalidOperation
 from definitions import (
-    Balance, KVEntry, Option, Pad, Transaction, Payee, Narration,
-    Posting, Comment, UnaryEntry,
+    Balance, KVEntry, Option, Pad, Transaction,
+    Payee, Narration, Posting, Comment, UnaryEntry,
 )
-import ply.lex as lex
-import ply.yacc as yacc
+from ply import lex, yacc
 
 
 # TODO: Implement other commands (price)
@@ -36,9 +35,8 @@ states = [
 
 # Tokens
 tokens = [
+    "NAME", "AMOUNT", "DATE", "COMMENT",
     "NUMBER", "STRING",
-    "NAME", "AMOUNT", "DATE",
-    "COMMENT",
 ] + list(reserved.values()) + list(kv_directives.values())
 
 literals = "@!*|+>"
@@ -68,9 +66,35 @@ def t_KV(t):
     return t_STRING(t)
 
 
-# TODO: handle more date formats on
 def t_DATE(t):
     r"[0-9]{4,}[\-/][0-9]+[\-/][0-9]+"
+    t.value = dateparse.parse(t.value).date()
+    return t
+
+
+def t_DATE_ABBR(t):
+    r"^(yesterday|ytd|dby|tomorrow|tmr|dat)"
+    date_abbr = {
+        "dby": -2,
+        "yesterday": -1,
+        "ytd": -1,
+        "tomorrow": 1,
+        "tmr": 1,
+        "dat": 2,
+    }
+    today = datetime.today().date()
+    t.type = "DATE"
+    t.value = today + timedelta(date_abbr.get(t.value, 0))
+    return t
+
+
+_month_abbrs = "|".join(m[0] for m in dateparse.parserinfo.MONTHS)
+
+
+# Parse date like "%b %d" (e.g. "Jan 01")
+@lex.TOKEN(rf"^({_month_abbrs})\s?([12][0-9]|3[0-1]|0?[1-9])")
+def t_DATE_MD(t):
+    t.type = "DATE"
     t.value = dateparse.parse(t.value).date()
     return t
 
@@ -195,7 +219,8 @@ def p_normal_entry(t):
 
 # Only for unit testing
 def p_debug_entry(t):
-    """entry : narration"""
+    """entry : narration
+             | DATE"""
     t[0] = t[1]
 
 
@@ -377,7 +402,8 @@ def p_error(t):
 # ----- main -----
 if __name__ == '__main__':
     inputs = [
-        "2019-07-01 * 麦当劳 汉堡",
+        "tomorrow Jan 01 dby",
+        "Dec 9 desc 100 from > to",
     ]
     for s in inputs:
         parser = yacc.yacc()
@@ -386,7 +412,8 @@ if __name__ == '__main__':
         print("RESULT", t)
         print()
 
-        lexer = lex.lex()
-        lexer.input(s)
-        for tok in lexer:
-            print(tok)
+        # lexer = lex.lex()
+        # lexer.input(s)
+        # for tok in lexer:
+        #     print(tok)
+        # print()
