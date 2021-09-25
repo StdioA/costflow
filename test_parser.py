@@ -16,7 +16,15 @@ def today():
 
 @pytest.fixture
 def parser():
-    return yacc.yacc(module=costflow)
+    def _p_debug_entry(t):
+        """entry : narration
+                | DATE"""
+        t[0] = t[1]
+
+    # Inject debug rule
+    costflow.p_debug_entry = _p_debug_entry
+    yield yacc.yacc(module=costflow)
+    del costflow.p_debug_entry
 
 
 @pytest.fixture

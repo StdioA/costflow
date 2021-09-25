@@ -8,7 +8,8 @@ from definitions import (
 from ply import lex, yacc
 
 
-# TODO: Implement other commands (price)
+# TODO: Implement other commands (price & formula)
+# TODO: Fallback rules for formula & comments
 reserved = {
     'open': 'OPEN',
     'close': 'CLOSE',
@@ -214,13 +215,6 @@ def p_normal_entry(t):
     """entry : option
              | event
              | commodity"""
-    t[0] = t[1]
-
-
-# Only for unit testing
-def p_debug_entry(t):
-    """entry : narration
-             | DATE"""
     t[0] = t[1]
 
 
