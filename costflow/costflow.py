@@ -1,7 +1,7 @@
 from datetime import date, datetime, timedelta
 from dateutil import parser as dateparse
 from decimal import Decimal, InvalidOperation
-from definitions import (
+from .definitions import (
     Balance, KVEntry, Option, Pad, Transaction,
     Payee, Narration, Posting, Comment, UnaryEntry,
 )
@@ -392,6 +392,8 @@ def p_pad(t):
 def p_error(t):
     print("Syntax error at '%s'" % t)
 
+
+parser = yacc.yacc()
 
 # ----- main -----
 if __name__ == '__main__':

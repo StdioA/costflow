@@ -1,7 +1,10 @@
 from datetime import datetime, date
 from decimal import Decimal
 import pytest
-from definitions import Comment, Narration, Transaction, Posting, Balance, Pad, Option, KVEntry, UnaryEntry
+from costflow.definitions import (
+    Comment, Narration, Transaction, Posting, Balance,
+    Pad, Option, KVEntry, UnaryEntry,
+)
 
 
 @pytest.fixture

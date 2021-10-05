@@ -1,9 +1,9 @@
 from decimal import Decimal
 import pytest
 from datetime import date, datetime, timedelta
-import costflow
 from ply import lex, yacc
-from definitions import (
+from costflow import costflow
+from costflow.definitions import (
     Balance, KVEntry, Option, Pad, Transaction,
     Payee, Narration, Posting, Comment, UnaryEntry
 )

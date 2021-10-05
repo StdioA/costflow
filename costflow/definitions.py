@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from collections import defaultdict
 from abc import ABCMeta, abstractmethod
-from utils import check_account
+from .utils import check_account
 
 
 class Entry(metaclass=ABCMeta):
