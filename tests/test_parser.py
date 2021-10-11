@@ -2,7 +2,7 @@ from decimal import Decimal
 import pytest
 from datetime import date, datetime, timedelta
 from ply import lex, yacc
-from costflow import costflow
+from costflow import rules
 from costflow.definitions import (
     Balance, KVEntry, Option, Pad, Transaction,
     Payee, Narration, Posting, Comment, UnaryEntry
@@ -22,14 +22,14 @@ def parser():
         t[0] = t[1]
 
     # Inject debug rule
-    costflow.p_debug_entry = _p_debug_entry
-    yield yacc.yacc(module=costflow)
-    del costflow.p_debug_entry
+    rules.p_debug_entry = _p_debug_entry
+    yield yacc.yacc(module=rules)
+    del rules.p_debug_entry
 
 
 @pytest.fixture
 def lexer():
-    return lex.lex(module=costflow)
+    return lex.lex(module=rules)
 
 
 def test_date(lexer, today):
@@ -79,6 +79,7 @@ def test_narration(parser, lexer):
         )
     )
     for tc in testcases:
+        print(tc[0])
         got = parser.parse(tc[0], lexer=lexer.clone())
         assert got == tc[1]
         parser.restart()

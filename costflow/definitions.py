@@ -6,6 +6,10 @@ from abc import ABCMeta, abstractmethod
 from .utils import check_account
 
 
+class CostflowSyntaxError(Exception):
+    pass
+
+
 class Entry(metaclass=ABCMeta):
     @abstractmethod
     def render(self):
