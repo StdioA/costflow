@@ -4,6 +4,7 @@ from decimal import Decimal
 from collections import defaultdict
 from abc import ABCMeta, abstractmethod
 from .utils import check_account
+from .config import config
 
 
 class CostflowSyntaxError(Exception):
@@ -64,7 +65,7 @@ class Transaction(Entry):
             elif currency is None:
                 currency = posting.currency
         if currency is None:
-            currency = DEFAULT_CURRENCY
+            currency = config.default_currency
         for posting in empty:
             posting.currency = currency
 

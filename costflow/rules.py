@@ -9,7 +9,7 @@ from .definitions import (
 from ply import lex
 
 
-# TODO: Implement other commands (price & formula)
+# TODO: Implement other commands (price)
 # -------------- lexer -------------
 reserved = {
     'open': 'OPEN',
