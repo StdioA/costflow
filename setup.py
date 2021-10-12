@@ -15,7 +15,7 @@ setup(
     package_data={'': ['costflow-parser.js']},
     url='https://github.com/stdioa/costflow',
     install_requires=install_requires,
-    license='GPLv3',
+    license='MIT',
     author='StdioA',
     author_email='stdioa@163.com',
     description='A Python implementation for costflow parser.',

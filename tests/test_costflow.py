@@ -22,14 +22,14 @@ def test_formula():
         ("tb", "tmr balance {{pre}}", ["123.45", "CNY"], "tmr balance 123.45 CNY"),
     ]
     formulas = {t[0]: t[1] for t in testcases}
-            
+
     conf = Config(formulas=formulas)
     costflow = Costflow(conf)
 
     for tc in testcases:
         exp = costflow.compile_template(tc[1], tc[2])
     assert exp == tc[3]
-    
+
 
 def test_parse(today):
     formulas = {
@@ -61,4 +61,3 @@ def test_parse(today):
         inputs, exp = tc
         got = costflow.parse(inputs)
         assert got == exp
-

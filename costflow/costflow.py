@@ -1,4 +1,3 @@
-from dataclasses import dataclass, field
 from ply import lex, yacc
 from . import rules, utils, definitions, config
 from jinja2 import Template
@@ -8,7 +7,7 @@ class Costflow:
     def __init__(self, conf=None):
         if conf is not None:
             config.config = conf
-            
+
         self.parser = yacc.yacc(module=rules)
         self.lexer = lex.lex(module=rules)
 
@@ -21,7 +20,7 @@ class Costflow:
         if "pre" in variables:
             pre = " ".join(inputs)
         return Template(formula).render(pre=pre, amount=amount)
-    
+
     def _process_template(self, segments):
         formula_name, *variables = segments
         formula = config.config.get_formula(formula_name)
@@ -32,7 +31,7 @@ class Costflow:
     def parse_raw(self, inputs):
         try:
             return self.parser.parse(inputs, lexer=self.lexer.clone())
-        except definitions.CostflowSyntaxError as e:
+        except definitions.CostflowSyntaxError:
             pass
         finally:
             self.parser.restart()

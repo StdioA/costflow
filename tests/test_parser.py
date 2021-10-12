@@ -106,7 +106,7 @@ def test_transaction(parser, lexer, today):
 
 
 def test_pipe_transaction(parser, lexer):
-    s = '2021-09-24 麦当劳 汉堡\n| from 24 | to1 -18\n| to2 -6'
+    s = '2021-09-24 麦当劳 汉堡\n| from 24 USD | to1 -18\n| to2 -6'
     exp = Transaction(
         narration=Narration(
             Payee("麦当劳"),
@@ -115,9 +115,9 @@ def test_pipe_transaction(parser, lexer):
             date(2021, 9, 24),
         ),
         postings=[
-            Posting("from", Decimal(24), "CNY"),
-            Posting("to1", Decimal(-18), "CNY"),
-            Posting("to2", Decimal(-6), "CNY"),
+            Posting("from", Decimal(24), "USD"),
+            Posting("to1", Decimal(-18), "USD"),
+            Posting("to2", Decimal(-6), "USD"),
         ]
     )
     trx = parser.parse(s, lexer=lexer)

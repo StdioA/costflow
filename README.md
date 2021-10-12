@@ -4,8 +4,12 @@
 
 A Python implement for [Costflow parser](https://www.costflow.io/docs/parser/).
 
+A simple demo can be fount at [demo/main.py](demo/main.py).
+
 Currently work in progress.
 
+
 ## Roadmap
-- [ ] Configuration for formula & beancount context
-- [ ] Fallback rules
+- [x] Configuration for formula
+- [x] Fallback rules
+- [ ] Loading beancount context
